@@ -863,7 +863,8 @@ function Set-BusinessCentralSalesOrder{
 }
 
 #WIP functions
-<#
+@'
+
 function Get-BusinessCentralSalesOrderLine{
     <#
     .SYNOPSIS
@@ -1014,4 +1015,4 @@ function Renew-BusinessCentralSubscription{
     )
 }
 
-#>
+'@
