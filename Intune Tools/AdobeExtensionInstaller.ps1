@@ -35,7 +35,8 @@ if(Test-Path $UPIA){
     #Uninstall
     if($Uninstall){
         try{
-            $Process = Start-Process -Wait -FilePath $UPIA -ArgumentList "/remove $ExtensionName" -PassThru -NoNewWindow
+            $PluginName = '"' + $ExtensionName + '"'
+            $Process = Start-Process -Wait -FilePath $UPIA -ArgumentList "/remove $PluginName" -PassThru -NoNewWindow
             return $Process.ExitCode
         }
         catch{
