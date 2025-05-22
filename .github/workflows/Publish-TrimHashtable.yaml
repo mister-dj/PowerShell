@@ -1,0 +1,17 @@
+name: Publish TrimHashtable
+
+on:
+    push:
+        paths:
+            - 'Modules/TrimHashtable/**'
+jobs:
+    build:
+      name: Publish
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v4
+        - name: Publish
+          env:
+            APIKEY: ${{ secrets.POSH_GALLERY_API_KEY }}
+          run: ./Modules/Publish.ps1 -TargetFolder "TrimHashtable"
+          shell: pwsh
