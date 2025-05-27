@@ -40,20 +40,21 @@ This document goes over how to add Graph permissions via PowerShell using the Gr
 ## Assigning Graph API permissions (scopes) and Exchange Online role to Managed Identity
 
 ### 1. Connect to Graph
-    Connect-MgGraph -Scopes AppRoleAssignment.ReadWrite.All,Application.Read.All
+    Connect-MgGraph -Scopes AppRoleAssignment.ReadWrite.All,Application.Read.All,RoleManagement.ReadWrite.Directory
 
 ### 2. Get Managed Identity
-    $MI_ID = (Get-MgServicePrincipal -Filter "DisplayName -eq '<Your Display Name Here>'")
+    $MI_ID = (Get-MgServicePrincipal -Filter "DisplayName eq '<Your Display Name Here>'").id
 
 ### 3. Delegate Exchange.ManageAsApp API permissions to the Managed Identity
     $AppRoleID = "dc50a0fb-09a3-484d-be87-e023b12c6440" #Exchange.ManageAsApp API permission
     $ResourceID = (Get-MgServicePrincipal -Filter "AppId eq '00000002-0000-0ff1-ce00-000000000000'").Id #Office 365 Exchange Online resource in Microsoft Entra ID
     New-MgServicePrincipalAppRoleAssignment -ServicePrincipalId $MI_ID -PrincipalId $MI_ID -AppRoleId $AppRoleID -ResourceId $ResourceID
 
-### 4. Assign the Entra role 
-    Connect-MgGraph -Scopes RoleManagement.ReadWrite.Directory
-    $RoleID = (Get-MgRoleManagementDirectoryRoleDefinition -Filter "DisplayName eq 'Exchange Recipient Administrator'").Id
-    New-MgRoleManagementDirectoryRoleAssignment -PrincipalId $MI_ID -RoleDefinitionId $RoleID -DirectoryScopeId "/"
+### 4. Assign Exchange permissions to the Managed Identity
+    $AppRoleID = (Get-MgRoleManagementDirectoryRoleDefinition -Filter "DisplayName eq 'Exchange Recipient Administrator'").Id
+    # More permissions, may be needed/easier in some instances.
+    # $AppRoleID = (Get-MgRoleManagementDirectoryRoleDefinition -Filter "DisplayName eq 'Exchange Administrator'").id
+    New-MgRoleManagementDirectoryRoleAssignment -PrincipalId $MI_ID -RoleDefinitionId $AppRoleID -DirectoryScopeId "/"
 
 ### 5. Assign Graph API permissions
 
