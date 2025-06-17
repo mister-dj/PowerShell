@@ -861,6 +861,122 @@ function Set-BusinessCentralSalesOrder{
 
     Return $Request.content | ConvertFrom-Json
 }
+function Get-BusinessCentralItem{
+    <#
+    .SYNOPSIS
+        Gets Business Central items.
+    .EXAMPLE
+        #Get all items    
+        Get-BusinessCentralItem
+
+        #Get specific item by Id
+        Get-BusinessCentralItem -Id 12345678
+    .LINK
+        https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/api-reference/v2.0/api/dynamics_item_get
+    #>
+    param(
+        [Parameter(Mandatory = $false)]
+        [string]$Id
+    )
+
+    If($Id){
+        $Endpoint = "/items($Id)"
+    }
+    else{
+        $Endpoint = "/items"
+    }
+
+    $Request = InvokeBusinessCentralApi -Endpoint $Endpoint
+
+    if($Id){
+        Return $Request    
+    }
+    else{
+        Return $Request.value
+    }   
+}
+function New-BusinessCentralSalesOrder{
+    <#
+    .SYNOPSIS
+        Creates a new Business Central sales order with the given properties.
+    .NOTES
+        Returns the sales order object that was created.
+    .EXAMPLE
+        $NewSalesorderSplat = @{
+            CustomerId = 12345678 #note: this is the GUID, not the number
+        }
+        $SalesOrder = New-BusinessCentralSalesOrder @NewSalesorderSplat
+    .LINK
+        https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/api-reference/v2.0/api/dynamics_salesorder_create
+    #>
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$CustomerId,
+        #Optional fields below here
+        [string]$Number,
+        [string]$BillToName,
+        [string]$RequestedDeliveryDate,
+        [string]$OrderDate,
+        [string]$ExternalDocumentNumber
+    )
+
+    #Dynamically create a hashtable with whatever attributes were specified. Have to do this since you can't have a null key value in hashtables and you may not use all params when creating a new object
+    $Attributes = @{}
+    $Params = $PSBoundParameters
+    $Keys = $PsBoundParameters.Keys
+    foreach ($Key in $Keys){
+        $Attributes.Add($Key,$Params.$Key)
+    }
+
+    $Body = $Attributes | ConvertTo-Json
+
+    $Endpoint = "/salesOrders"
+
+    $Request = InvokeBusinessCentralApi -Endpoint $Endpoint -Method Post -Body $Body
+
+    Return $Request.content | ConvertFrom-Json
+}
+function Set-BusinessCentralSalesOrder{
+    <#
+    .SYNOPSIS
+        Creates a new Business Central sales order with the given properties.
+    .NOTES
+        Returns the sales order object that was created.
+    .EXAMPLE
+        $NewSalesorderSplat = @{
+        CustomerId = 12345678 #note: this is the GUID, not the number
+        }
+        $SalesOrder = New-BusinessCentralSalesOrder @NewSalesorderSplat
+    .LINK
+        https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/api-reference/v2.0/api/dynamics_salesorder_update
+    #>
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$OrderId,
+        #Optional fields below here
+        [string]$Number,
+        [string]$BillToName,
+        [string]$RequestedDeliveryDate,
+        [string]$OrderDate,
+        [string]$ExternalDocumentNumber
+    )
+
+    #Dynamically create a hashtable with whatever attributes were specified. Have to do this since you can't have a null key value in hashtables and you may not use all params when creating a new object
+    $Attributes = @{}
+    $Params = $PSBoundParameters
+    $Keys = $PsBoundParameters.Keys
+    foreach ($Key in $Keys){
+        $Attributes.Add($Key,$Params.$Key)
+    }
+
+    $Body = $Attributes | ConvertTo-Json
+
+    $Endpoint = "/salesOrders/($OrderId)"
+
+    $Request = InvokeBusinessCentralApi -Endpoint $Endpoint -Method Patch -Body $Body
+
+    Return $Request.content | ConvertFrom-Json
+}
 
 #WIP functions
 @'
