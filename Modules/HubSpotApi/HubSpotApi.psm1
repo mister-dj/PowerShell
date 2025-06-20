@@ -889,28 +889,31 @@ function Resolve-HubSpotOwner {
 function Search-HubSpot {
     <#
     .SYNOPSIS
-        Executes a search query.
+        Executes a search query, passed as a hashtable.
     .DESCRIPTION
         Executes a search query against a given object type, e.g. searching deals for that include "test" in the name.
     .EXAMPLE
         #Bloody hell the nesting
         $Query = @{
-            filterGroups = @(
+            "limit" = 200
+            "filterGroups"= @(
                 @{
-                    filters = @(
+                    "filters" = @(
                         @{
-                            propertyName = "firstname"
-                            operator = "EQ"
-                            value = "Alice"
+                            "propertyName" = "hs_lastmodifieddate"
+                            "operator" = "GTE"
+                            "value" = $Time
                         }
                     )
                 }
             )
-        } | ConvertTo-Json -Depth 20
+            "properties" = @("hs_lastmodifieddate","hs_object_id","name")
+        }
         $Matches = Search-HubSpot -ObjectType contacts -Query $Query
     .NOTES
         The search endpoints are limited to 10,000 total results for any given query. Attempting to page beyond 10,000 will result in a 400 error.
         See links for other caveats and limits.
+        Paging is handled automatically, with results fetched up to 200 at a time (according to the limit set in the query). It's strongly recommended to use limit=200 (the maximum) due to API rate limits
     .LINK
         https://developers.hubspot.com/docs/guides/api/crm/search
     #>
@@ -919,12 +922,42 @@ function Search-HubSpot {
         [ValidateSet("deals","contacts","companies")]
         [string]$ObjectType,
         [Parameter(Mandatory = $true)]
-        [object]$Query
+        [hashtable]$Query
     )
 
     $Endpoint = "/crm/v3/objects/$ObjectType/search"
     
-    $Req = InvokeHubSpotApi -Endpoint $Endpoint -Method Post -Body $Query
+    #Save the original query in case it has to be re-used for paging
+    $OriginalQuery = $Query.Clone()
 
-    Return $Req.results
+    $Req = InvokeHubSpotApi -Endpoint $Endpoint -Method Post -Body ($Query  | ConvertTo-Json -Depth 20)
+    $Results = $Req.results
+
+    #Search results are returned in pages but don't use normal pagination
+    $ResultCount = $Req.total
+    $i = $Req.results.Count
+    
+    if($env:HubSpotApiVerbosity -eq "Verbose"){
+        Write-Host "Total search results: $ResultCount"
+    }
+
+    #If there are more results than are in the current page
+    while($i -lt $ResultCount){
+        #Build the paged query
+        $Query = $OriginalQuery.Clone()
+        $Query.Add("after",$i)
+        $NextQuery = $Query | ConvertTo-Json -Depth 20
+        
+        $PageReq = InvokeHubSpotApi -Endpoint $Endpoint -Method Post -Body $NextQuery
+        $PageCount = $PageReq.results.Count
+
+        $i += $PageCount
+
+        $Results += $PageReq.results
+
+        #Throttling due to search API limits
+        Start-Sleep -Milliseconds 500
+    }
+
+    Return $Results
 }

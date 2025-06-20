@@ -12,7 +12,7 @@
 RootModule = 'BusinessCentralApi.psm1'
 
 # Version number of this module.
-ModuleVersion = '0.0.5'
+ModuleVersion = '0.0.6'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -95,7 +95,7 @@ PrivateData = @{
     PSData = @{
 
         # Tags applied to this module. These help with module discovery in online galleries.
-        Tags = @('API','BusinessCentral','Dynamics')
+        Tags = @('API','BusinessCentral','Dynamics','Abakion')
 
         # A URL to the license for this module.
         LicenseUri = 'https://github.com/mister-dj/PowerShell/blob/main/LICENSE.txt'

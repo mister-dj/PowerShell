@@ -49,6 +49,11 @@ function InvokeBusinessCentralApi{
     <#
     .SYNOPSIS
         This is the main internal function for this module. It handles making the API calls to a given endpoint, authentication (once connected), etc.
+    .DESCRIPTION
+        Handles common functionality for calling API endpoints and adding auth headers.
+
+        The AbakionEndpoint switch can be used with Abakion apps: https://bcapps.api.abakion.com/
+
     #>
     param(
         [Parameter(Mandatory = $true)]
@@ -60,7 +65,9 @@ function InvokeBusinessCentralApi{
         [Parameter(Mandatory = $false)]
         $Body,
         [Parameter(Mandatory = $false)]
-        [switch]$NoCompanyContext
+        [switch]$NoCompanyContext,
+        [Parameter(Mandatory = $false)]
+        [switch]$AbakionEndpoint
     )
 
     if($null -eq $env:BusinessCentralApiToken){
@@ -76,6 +83,9 @@ function InvokeBusinessCentralApi{
 
     if($NoCompanyContext){
         $ApiBaseUrl = "https://api.businesscentral.dynamics.com/v2.0/$Environment/api/v2.0"    
+    }
+    elseif($AbakionEndpoint){
+        $ApiBaseUrl = "https://api.businesscentral.dynamics.com/v2.0/$Environment/api/abakion/bi/v2.0/companies($Company)"    
     }
     else{
         $ApiBaseUrl = "https://api.businesscentral.dynamics.com/v2.0/$Environment/api/v2.0/companies($Company)"
@@ -1132,3 +1142,40 @@ function Renew-BusinessCentralSubscription{
 }
 
 '@
+
+
+
+function Get-BusinessCentralAbakionCustomer{
+    <#
+    .SYNOPSIS
+        Gets Business Central items.
+    .EXAMPLE
+        #Get all items    
+        Get-BusinessCentralItem
+
+        #Get specific item by Id
+        Get-BusinessCentralItem -Id 12345678
+    .LINK
+        https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/api-reference/v2.0/api/dynamics_item_get
+    #>
+    param(
+        [Parameter(Mandatory = $false)]
+        [string]$Id
+    )
+
+    If($Id){
+        $Endpoint = "/abiCustomers($Id)"
+    }
+    else{
+        $Endpoint = "/abiCustomers"
+    }
+
+    $Request = InvokeBusinessCentralApi -Endpoint $Endpoint -Abakion
+
+    if($Id){
+        Return $Request    
+    }
+    else{
+        Return $Request.value
+    }   
+}
