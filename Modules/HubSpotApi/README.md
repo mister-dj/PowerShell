@@ -22,4 +22,4 @@ To see examples and information about cmdlets, use ```Get-Help <cmdlet>```, for 
 
 # License
 
-See the [LICENSE.txt](https://github.com/mister-dj/PowerShell/blob/main/LICENSE.txt) file in the root of this repo.
+See the [LICENSE.txt](https://github.com/mister-dj/PowerShell/blob/main/LICENSE.txt) file in the root of this repository.
