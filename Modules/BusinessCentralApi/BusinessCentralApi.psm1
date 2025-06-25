@@ -60,8 +60,10 @@ function InvokeBusinessCentralApi{
         [ValidatePattern('/.*')] #require the endpoint start with '/'
         [string]$Endpoint,
         [Parameter(Mandatory = $false)]
-        [ValidateSet("Get","Post","Delete","Patch")]
+        [ValidateSet("Get","Post","Delete","Patch","Upload")]
         [string]$Method = "get",
+        [Parameter(Mandatory = $false)]
+        [string]$Filepath,
         [Parameter(Mandatory = $false)]
         $Body,
         [Parameter(Mandatory = $false)]
@@ -121,6 +123,13 @@ function InvokeBusinessCentralApi{
         #https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-Match
         $headers.Add("If-Match", '*')
         $Request = Invoke-WebRequest -Uri $ApiUrl -Method Patch -Headers $headers -Body $Body
+    }
+    elseif($Method -eq "Upload"){
+        #Need to add the if-match header as it's required for patch calls (updating objects)
+        #Seems this is due to potential caching in webservers:
+        #https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-Match
+        $headers.Add("If-Match", '*')
+        $Request = Invoke-WebRequest -Uri $ApiUrl -Method Patch -Headers $headers -InFile $Filepath
     }
     
     Return $Request
@@ -986,6 +995,64 @@ function Set-BusinessCentralSalesOrder{
     $Request = InvokeBusinessCentralApi -Endpoint $Endpoint -Method Patch -Body $Body
 
     Return $Request.content | ConvertFrom-Json
+}
+
+function Get-BusinessCentralPicture{
+    <#
+    .SYNOPSIS
+        Gets Business Central pictures for a given object type.
+    .EXAMPLE
+        Get-BusinessCentralPicture -Id 12345678 -Type Item
+    .LINK
+        https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/api-reference/v2.0/api/dynamics_picture_get    #>
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Id,
+        [Parameter(Mandatory = $true)]
+        [ValidateSet("Item","Customer","Employee","Vendor","Contact")]
+        [string]$Type
+    )
+
+    $Endpoint = "/$Type`s($Id)/picture"
+
+    $Request = InvokeBusinessCentralApi -Endpoint $Endpoint
+
+    Return $Request    
+}
+
+function Set-BusinessCentralPicture{
+    <#
+    .SYNOPSIS
+        Sets a Business Central pictures for a given object.
+    .EXAMPLE
+        Set-BusinessCentralPicture -Id 12345678 -Type Item
+    .NOTES
+        The Content parameter takes the image as base64 encoded bytes. 
+    .LINK
+        https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/api-reference/v2.0/api/dynamics_picture_get    #>
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Id,
+        [Parameter(Mandatory = $true)]
+        [ValidateSet("Item","Customer","Employee","Vendor","Contact")]
+        [string]$Type,
+        [Parameter(Mandatory = $true)]
+        [string]$FilePath
+    )
+
+    try{
+        $File = Get-ChildItem -File -Path $FilePath
+    }
+    catch{
+        throw "file not found"
+    }
+    
+
+    $Endpoint = "/$Type`s($Id)/picture/pictureContent"
+
+    $Request = InvokeBusinessCentralApi -Endpoint $Endpoint -Method Upload -Filepath $File.FullName
+
+    Return $Request    
 }
 
 #WIP functions
