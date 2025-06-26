@@ -819,7 +819,12 @@ function Get-HubSpotUser {
 
     $Req = InvokeHubSpotApi -Endpoint $Endpoint
 
-    Return $Req
+    if($Id){
+        Return $Req
+    }
+    else {
+        Return $Req.results
+    }
 }
 function Get-HubSpotOwner {
     <#
@@ -831,12 +836,16 @@ function Get-HubSpotOwner {
 
         #Get owner by Id
         Get-HubSpotOwner -Id 12345678
+    .NOTES
+        When using the -Archived switch, only owners who are archived will be returned. This is due to an API limitation on HubSpot's part.
     .LINK
         https://developers.hubspot.com/docs/reference/api/crm/owners
     #>
     param(
         [Parameter(Mandatory = $false)]
-        [string]$Id
+        [string]$Id,
+        [Parameter(Mandatory = $false)]
+        [switch]$Archived
     )
 
     if($Id){
@@ -848,7 +857,8 @@ function Get-HubSpotOwner {
     }
     else{
         $Endpoint = "/crm/v3/owners/"
-
+        if($Archived){$Endpoint += "?archived=true"} #note that this ONLY returns archived owners
+        
         $Req = InvokeHubSpotApi -Endpoint $Endpoint
 
         Return $Req.results
