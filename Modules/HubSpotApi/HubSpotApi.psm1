@@ -850,6 +850,7 @@ function Get-HubSpotOwner {
 
     if($Id){
         $Endpoint = "/crm/v3/owners/$Id"
+        if($Archived){$Endpoint += "?archived=true"} #note that this ONLY returns archived owners
 
         $Req = InvokeHubSpotApi -Endpoint $Endpoint
 
@@ -882,7 +883,7 @@ function Resolve-HubSpotOwner {
     )
 
     $Owner = Get-HubSpotOwner -Id $OwnerId
-
+    $Owner += Get-HubSpotOwner -Id $OwnerId
     $Properties = @(
         "hs_deactivated",
         "hs_email",
