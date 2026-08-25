@@ -4,7 +4,7 @@ Function Update-RunbookContent{
         Updates the content of an Azure Automation Account Runbook.
     .EXAMPLE
         $Content = @"
-            if($true){write-host "True is true"}
+            if($true){write-host "True is true!"}
         "@
 
         Update-Runbookcontent.ps1 -AutomationAccountName "AutomationAccount" -ResourceGroupName "AutomationRG" -RunbookName "TestTrue" -Content $Content  -Publish
