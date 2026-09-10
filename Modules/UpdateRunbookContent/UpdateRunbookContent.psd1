@@ -12,7 +12,7 @@
 RootModule = 'UpdateRunbookContent.psm1'
 
 # Version number of this module.
-ModuleVersion = '0.0.1'
+ModuleVersion = '0.0.2'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -116,7 +116,7 @@ PrivateData = @{
         # RequireLicenseAcceptance = $false
 
         # External dependent modules of this module
-        ExternalModuleDependencies = @('Microsoft.PowerShell.Utility')
+        ExternalModuleDependencies = @('Microsoft.PowerShell.Utility','Az.Accounts')
 
     } # End of PSData hashtable
 
